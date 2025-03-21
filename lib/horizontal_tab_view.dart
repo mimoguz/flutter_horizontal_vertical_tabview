@@ -1,4 +1,4 @@
-library flutter_horizontal_vertical_tabview;
+library;
 
 import 'package:flutter/material.dart';
 
@@ -14,21 +14,21 @@ class HorizontalTabView extends StatefulWidget {
   final Function(int tabIndex)? onSelect;
   final Color? backgroundColor;
 
-  const HorizontalTabView(
-      {Key? key,
-      required this.tabs,
-      required this.contents,
-      this.initialIndex = 0,
-      this.disabledChangePageFromContentView = false,
-      this.contentScrollAxis = Axis.vertical,
-      this.changePageCurve = Curves.easeInOut,
-      this.changePageDuration = const Duration(milliseconds: 300),
-      this.onSelect,
-      this.backgroundColor})
-      : super(key: key);
+  const HorizontalTabView({
+    super.key,
+    required this.tabs,
+    required this.contents,
+    this.initialIndex = 0,
+    this.disabledChangePageFromContentView = false,
+    this.contentScrollAxis = Axis.vertical,
+    this.changePageCurve = Curves.easeInOut,
+    this.changePageDuration = const Duration(milliseconds: 300),
+    this.onSelect,
+    this.backgroundColor,
+  });
 
   @override
-  _HorizontalTabViewState createState() => _HorizontalTabViewState();
+  State<HorizontalTabView> createState() => _HorizontalTabViewState();
 }
 
 class _HorizontalTabViewState extends State<HorizontalTabView>
@@ -52,24 +52,26 @@ class _HorizontalTabViewState extends State<HorizontalTabView>
     _changePageByTapView = false;
 
     controller = TabController(
-        length: widget.tabs.length,
-        vsync: this,
-        initialIndex: widget.initialIndex);
+      length: widget.tabs.length,
+      vsync: this,
+      initialIndex: widget.initialIndex,
+    );
 
     for (int i = 0; i < widget.tabs.length; i++) {
-      animationControllers.add(AnimationController(
-        duration: const Duration(milliseconds: 400),
-        vsync: this,
-      ));
+      animationControllers.add(
+        AnimationController(
+          duration: const Duration(milliseconds: 400),
+          vsync: this,
+        ),
+      );
     }
-//    _selectTab(widget.initialIndex);
 
     if (widget.disabledChangePageFromContentView == true) {
       pageScrollPhysics = const NeverScrollableScrollPhysics();
     }
 
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       pageController.jumpToPage(widget.initialIndex);
       setState(() {});
     });
@@ -82,37 +84,41 @@ class _HorizontalTabViewState extends State<HorizontalTabView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Row(children: [
-            const Icon(Icons.arrow_left, color: Colors.grey),
-            Expanded(
-              child: TabBar(
-                isScrollable: true,
-                controller: controller,
-                labelColor: Theme.of(context).primaryColor,
-                unselectedLabelColor: Theme.of(context).hintColor,
-                indicator: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: Theme.of(context).primaryColor,
-                      width: 2,
+          Row(
+            children: [
+              const Icon(Icons.arrow_left, color: Colors.grey),
+              Expanded(
+                child: TabBar(
+                  isScrollable: true,
+                  controller: controller,
+                  labelColor: Theme.of(context).primaryColor,
+                  unselectedLabelColor: Theme.of(context).hintColor,
+                  indicator: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Theme.of(context).primaryColor,
+                        width: 2,
+                      ),
                     ),
                   ),
-                ),
-                tabs: widget.tabs,
-                onTap: (index) {
-                  _changePageByTapView = true;
-                  setState(() {
-                    _selectTab(index);
-                  });
+                  tabs: widget.tabs,
+                  onTap: (index) {
+                    _changePageByTapView = true;
+                    setState(() {
+                      _selectTab(index);
+                    });
 
-                  pageController.animateToPage(index,
+                    pageController.animateToPage(
+                      index,
                       duration: widget.changePageDuration,
-                      curve: widget.changePageCurve);
-                },
+                      curve: widget.changePageCurve,
+                    );
+                  },
+                ),
               ),
-            ),
-            const Icon(Icons.arrow_right, color: Colors.grey),
-          ]),
+              const Icon(Icons.arrow_right, color: Colors.grey),
+            ],
+          ),
           Expanded(
             child: PageView.builder(
               scrollDirection: widget.contentScrollAxis,
