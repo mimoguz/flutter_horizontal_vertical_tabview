@@ -197,7 +197,7 @@ class _VerticalTabViewState extends State<VerticalTabView>
                                   scale: Tween(begin: 0.0, end: 1.0).animate(
                                     CurvedAnimation(
                                       parent: animationControllers[index],
-                                      curve: Curves.elasticOut,
+                                      curve: Curves.easeOut,
                                     ),
                                   ),
                                   child: Container(
