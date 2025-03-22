@@ -13,13 +13,13 @@ class VerticalTabView extends StatefulWidget {
   final List<Widget> contents;
 
   final TextDirection direction;
-  final Color indicatorColor;
+  final Color? indicatorColor;
   final bool disabledChangePageFromContentView;
   final Axis contentScrollAxis;
   final Color selectedTabBackgroundColor;
   final Color tabBackgroundColor;
-  final TextStyle selectedTabTextStyle;
-  final TextStyle tabTextStyle;
+  final TextStyle? selectedTabTextStyle;
+  final TextStyle? tabTextStyle;
   final Duration changePageDuration;
   final Curve changePageCurve;
   final Color tabsShadowColor;
@@ -33,23 +33,20 @@ class VerticalTabView extends StatefulWidget {
     required this.contents,
     this.tabsWidth = 90,
     this.indicatorWidth = 3,
-    this.indicatorSide = IndicatorSide.start,
+    this.indicatorSide = IndicatorSide.end,
     this.initialIndex = 0,
     this.direction = TextDirection.ltr,
-    this.indicatorColor = Colors.blue,
+    this.indicatorColor,
     this.disabledChangePageFromContentView = false,
     this.contentScrollAxis = Axis.vertical,
-    this.selectedTabBackgroundColor = const Color.fromARGB(17, 90, 210, 240),
-    this.tabBackgroundColor = const Color(0xfff8f8f8),
-    this.selectedTabTextStyle = const TextStyle(
-      color: Colors.black,
-      fontSize: 13,
-    ),
-    this.tabTextStyle = const TextStyle(color: Colors.black38, fontSize: 13),
+    this.selectedTabBackgroundColor = Colors.transparent,
+    this.tabBackgroundColor = Colors.transparent,
+    this.selectedTabTextStyle,
+    this.tabTextStyle,
     this.changePageCurve = Curves.easeInOut,
     this.changePageDuration = const Duration(milliseconds: 300),
-    this.tabsShadowColor = Colors.black54,
-    this.tabsElevation = 2.0,
+    this.tabsShadowColor = Colors.transparent,
+    this.tabsElevation = 0.0,
     this.onSelect,
     this.backgroundColor,
   });
@@ -60,7 +57,7 @@ class VerticalTabView extends StatefulWidget {
 
 class _VerticalTabViewState extends State<VerticalTabView>
     with TickerProviderStateMixin {
-  late int _selectedIndex;
+  int _selectedIndex = -1;
   late bool _changePageByTapView;
 
   late Animation<double> animation;
@@ -74,15 +71,11 @@ class _VerticalTabViewState extends State<VerticalTabView>
 
   @override
   void initState() {
-    _selectedIndex = widget.initialIndex;
     _changePageByTapView = false;
 
     for (int i = 0; i < widget.tabs.length; i++) {
       animationControllers.add(
-        AnimationController(
-          duration: const Duration(milliseconds: 400),
-          vsync: this,
-        ),
+        AnimationController(duration: Durations.medium3, vsync: this),
       );
     }
 
@@ -92,8 +85,9 @@ class _VerticalTabViewState extends State<VerticalTabView>
 
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      pageController.jumpToPage(widget.initialIndex);
-      setState(() {});
+      setState(() {
+        _selectTab(widget.initialIndex);
+      });
     });
   }
 
@@ -130,7 +124,10 @@ class _VerticalTabViewState extends State<VerticalTabView>
                             child = tab.child!;
                           } else {
                             child = Container(
-                              padding: const EdgeInsets.all(10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
                               child: Row(
                                 children: <Widget>[
                                   (tab.icon != null)
@@ -147,10 +144,7 @@ class _VerticalTabViewState extends State<VerticalTabView>
                                         child: Text(
                                           tab.text!,
                                           softWrap: true,
-                                          style:
-                                              _selectedIndex == index
-                                                  ? widget.selectedTabTextStyle
-                                                  : widget.tabTextStyle,
+                                          style: _tabTextStyle(index),
                                         ),
                                       )
                                       : Container(),
@@ -164,26 +158,7 @@ class _VerticalTabViewState extends State<VerticalTabView>
                             itemBGColor = widget.selectedTabBackgroundColor;
                           }
 
-                          late double? left, right;
-                          if (widget.direction == TextDirection.rtl) {
-                            left =
-                                (widget.indicatorSide == IndicatorSide.end)
-                                    ? 0
-                                    : null;
-                            right =
-                                (widget.indicatorSide == IndicatorSide.start)
-                                    ? 0
-                                    : null;
-                          } else {
-                            left =
-                                (widget.indicatorSide == IndicatorSide.start)
-                                    ? 0
-                                    : null;
-                            right =
-                                (widget.indicatorSide == IndicatorSide.end)
-                                    ? 0
-                                    : null;
-                          }
+                          final (left, right) = _getIndicatorPosition();
 
                           return Stack(
                             children: <Widget>[
@@ -201,7 +176,19 @@ class _VerticalTabViewState extends State<VerticalTabView>
                                     ),
                                   ),
                                   child: Container(
-                                    color: widget.indicatorColor,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          widget.indicatorColor ??
+                                          Theme.of(context).colorScheme.primary,
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(
+                                          widget.indicatorWidth,
+                                        ),
+                                        bottomLeft: Radius.circular(
+                                          widget.indicatorWidth,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -260,7 +247,7 @@ class _VerticalTabViewState extends State<VerticalTabView>
     );
   }
 
-  void _selectTab(index) {
+  void _selectTab(int index) {
     if (index == -1) return;
 
     _selectedIndex = index;
@@ -272,6 +259,29 @@ class _VerticalTabViewState extends State<VerticalTabView>
     if (widget.onSelect != null) {
       widget.onSelect!(_selectedIndex);
     }
+  }
+
+  (double? left, double? right) _getIndicatorPosition() {
+    if (widget.direction == TextDirection.rtl) {
+      return (widget.indicatorSide == IndicatorSide.end)
+          ? (0, null)
+          : (null, 0);
+    }
+    return (widget.indicatorSide == IndicatorSide.start)
+        ? (0, null)
+        : (null, 0);
+  }
+
+  TextStyle _tabTextStyle(int index) {
+    final theme = Theme.of(context);
+    if (_selectedIndex == index) {
+      return widget.selectedTabTextStyle ??
+          theme.tabBarTheme.labelStyle ??
+          theme.textTheme.bodyMedium!;
+    }
+    return widget.tabTextStyle ??
+        theme.tabBarTheme.unselectedLabelStyle ??
+        theme.textTheme.bodyMedium!.copyWith(color: theme.hintColor);
   }
 
   @override
