@@ -96,7 +96,7 @@ class _VerticalTabViewState extends State<VerticalTabView>
     return Directionality(
       textDirection: widget.direction,
       child: Container(
-        color: widget.backgroundColor ?? Theme.of(context).canvasColor,
+        color: widget.backgroundColor ?? Theme.of(context).colorScheme.surface,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -153,10 +153,10 @@ class _VerticalTabViewState extends State<VerticalTabView>
                             );
                           }
 
-                          Color itemBGColor = widget.tabBackgroundColor;
-                          if (_selectedIndex == index) {
-                            itemBGColor = widget.selectedTabBackgroundColor;
-                          }
+                          final itemBGColor =
+                              _selectedIndex == index
+                                  ? widget.selectedTabBackgroundColor
+                                  : widget.tabBackgroundColor;
 
                           final (left, right) = _getIndicatorPosition();
 
