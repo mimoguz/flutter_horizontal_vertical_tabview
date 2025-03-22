@@ -104,6 +104,7 @@ class _VerticalTabViewState extends State<VerticalTabView>
               child: Row(
                 children: <Widget>[
                   Material(
+                    type: MaterialType.transparency,
                     elevation: widget.tabsElevation,
                     shadowColor: widget.tabsShadowColor,
                     shape: const BeveledRectangleBorder(),
